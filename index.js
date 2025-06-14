@@ -83,12 +83,13 @@ app.get('/', (_, res) => {
 });
 
 app.get('/.well-known/oauth-authorization-server', (_, res) => {
+  res.setHeader('Content-Type', 'application/json');
   res.json({
     authorization_endpoint: 'https://login.salesforce.com/services/oauth2/authorize',
     token_endpoint: 'https://login.salesforce.com/services/oauth2/token',
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
-    code_challenge_methods_supported: ['S256'],
+    code_challenge_methods_supported: ['S256']
   });
 });
 
