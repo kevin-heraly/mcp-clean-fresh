@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const jsforce = require('jsforce');
 const session = require('express-session');
@@ -27,8 +28,18 @@ const oauth2 = new jsforce.OAuth2({
 });
 
 // 🔐 OAuth Initiation
+const base64url = str => str.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
 app.get('/auth/salesforce', (req, res) => {
-  const url = oauth2.getAuthorizationUrl({ scope: 'refresh_token' }); 
+  const codeVerifier = base64url(crypto.randomBytes(32));
+  const codeChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
+  req.session.codeVerifier = codeVerifier;
+
+  const url = oauth2.getAuthorizationUrl({
+    scope: 'refresh_token',
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256'
+  });
   res.redirect(url);
 });
 
@@ -39,7 +50,7 @@ app.get('/auth/callback', async (req, res) => {
 
   try {
     const conn = new jsforce.Connection({ oauth2 });
-    await conn.authorize(code);
+    await conn.authorize(code, req.session.codeVerifier);
     req.session.accessToken = conn.accessToken;
     req.session.instanceUrl = conn.instanceUrl;
     res.send('✅ Auth success. You can now use the MCP endpoints.');
