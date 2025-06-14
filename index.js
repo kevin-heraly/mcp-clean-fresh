@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const jsforce = require('jsforce');
-const session = require('express-session');
+const cookieSession = require('cookie-session');
 
 const {
   SALESFORCE_CLIENT_ID,
@@ -18,7 +18,11 @@ if (!SALESFORCE_CLIENT_ID || !SALESFORCE_CLIENT_SECRET || !SALESFORCE_REDIRECT_U
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
-app.use(session({ secret: 'mcp-salesforce-secret', resave: false, saveUninitialized: true }));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['mcp-salesforce-secret'],
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
 
 const oauth2 = new jsforce.OAuth2({
   loginUrl: SALESFORCE_LOGIN_URL,
@@ -34,6 +38,7 @@ app.get('/auth/salesforce', (req, res) => {
   const codeVerifier = base64url(crypto.randomBytes(32));
   const codeChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
   req.session.codeVerifier = codeVerifier;
+  console.log('Generated code_verifier:', codeVerifier);
 
   const url = oauth2.getAuthorizationUrl({
     scope: 'refresh_token',
@@ -50,6 +55,7 @@ app.get('/auth/callback', async (req, res) => {
 
   try {
     const conn = new jsforce.Connection({ oauth2 });
+    console.log('Retrieved code_verifier:', req.session.codeVerifier);
     await conn.authorize(code, req.session.codeVerifier);
     req.session.accessToken = conn.accessToken;
     req.session.instanceUrl = conn.instanceUrl;
