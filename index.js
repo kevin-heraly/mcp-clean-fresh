@@ -82,14 +82,19 @@ app.get('/', (_, res) => {
   res.json(metadata);
 });
 
-app.get('/.well-known/oauth-authorization-server', (_, res) => {
+app.get('/.well-known/oauth-authorization-server', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  res.setHeader('MCP-Protocol-Version', '2024-11-05'); // Required by ChatGPT
+
   res.json({
-    authorization_endpoint: 'https://login.salesforce.com/services/oauth2/authorize',
-    token_endpoint: 'https://login.salesforce.com/services/oauth2/token',
-    response_types_supported: ['code'],
-    grant_types_supported: ['authorization_code', 'refresh_token'],
-    code_challenge_methods_supported: ['S256']
+    issuer: "https://mcp-salesforce-production.up.railway.app",
+    authorization_endpoint: "https://login.salesforce.com/services/oauth2/authorize",
+    token_endpoint: "https://login.salesforce.com/services/oauth2/token",
+    registration_endpoint: "https://mcp-salesforce-production.up.railway.app/register",
+    response_types_supported: ["code"],
+    grant_types_supported: ["authorization_code", "refresh_token"],
+    code_challenge_methods_supported: ["S256"],
+    token_endpoint_auth_methods_supported: ["client_secret_post", "client_secret_basic"]
   });
 });
 
