@@ -17,11 +17,14 @@ if (!SALESFORCE_CLIENT_ID || !SALESFORCE_CLIENT_SECRET || !SALESFORCE_REDIRECT_U
 }
 
 const app = express();
+app.set('trust proxy', 1); // for Railway HTTPS proxies
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieSession({
   name: 'session',
   keys: ['mcp-salesforce-secret'],
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  secure: true,
+  sameSite: 'lax'
 }));
 
 const oauth2 = new jsforce.OAuth2({
