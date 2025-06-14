@@ -155,9 +155,10 @@ app.post("/", (_, res) => res.json(METADATA));
 app.get("/.well-known/oauth-authorization-server", (_, res) => {
   const baseUrl = "https://mcp-salesforce-production.up.railway.app";
   res.json({
-    issuer: baseUrl,
+    issuer: "https://mcp-salesforce-production.up.railway.app",
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
+    registration_endpoint: null,
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
