@@ -132,9 +132,17 @@ const METADATA = {
     authorization_type: "oauth2",
     client_url: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_url: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-    scope: "refresh_token",
+    scope: "refresh_token offline_access full api"
   },
-  endpoints: ["/tools/list", "/call/search", "/call/fetch"],
+  issuer: "https://mcp-salesforce-production.up.railway.app",
+  authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
+  token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
+  registration_endpoint: null, // <-- This is required even if null
+  response_types_supported: ["code"],
+  grant_types_supported: ["authorization_code", "refresh_token"],
+  code_challenge_methods_supported: ["S256"],
+  token_endpoint_auth_methods_supported: ["client_secret_post"],
+  endpoints: ["/tools/list", "/call/search", "/call/fetch"]
 };
 
 app.get("/", (_, res) => res.json(METADATA));
