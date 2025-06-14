@@ -28,7 +28,7 @@ const oauth2 = new jsforce.OAuth2({
 
 // 🔐 OAuth Initiation
 app.get('/auth/salesforce', (req, res) => {
-  const url = oauth2.getAuthorizationUrl({ scope: 'full refresh_token' });
+  const url = oauth2.getAuthorizationUrl({ scope: 'refresh_token' }); 
   res.redirect(url);
 });
 
@@ -71,7 +71,7 @@ const metadata = {
     authorization_type: 'oauth2',
     client_url: 'https://login.salesforce.com/services/oauth2/authorize',
     token_url: 'https://login.salesforce.com/services/oauth2/token',
-    scope: 'full refresh_token offline_access'
+    scope: 'refresh_token'
   },
   endpoints: ['/tools/list', '/call/search', '/call/fetch']
 };
