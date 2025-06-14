@@ -137,7 +137,7 @@ const METADATA = {
   issuer: "https://mcp-salesforce-production.up.railway.app",
   authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
   token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-  registration_endpoint: null, // <-- This is required even if null
+  registration_endpoint: "", // <-- Updated from null to empty string
   response_types_supported: ["code"],
   grant_types_supported: ["authorization_code", "refresh_token"],
   code_challenge_methods_supported: ["S256"],
@@ -158,7 +158,7 @@ app.get("/.well-known/oauth-authorization-server", (_, res) => {
     issuer: "https://mcp-salesforce-production.up.railway.app",
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-    registration_endpoint: null,
+    registration_endpoint: "", // Updated from null to empty string
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
