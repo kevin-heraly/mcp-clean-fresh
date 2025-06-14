@@ -145,15 +145,17 @@ app.post("/", (_, res) => res.json(METADATA));
 // ─────────────────────────────────────
 // OAuth metadata endpoint for ChatGPT
 app.get("/.well-known/oauth-authorization-server", (_, res) => {
+  const baseUrl = "https://mcp-salesforce-production.up.railway.app";
   res.json({
-    issuer: SALESFORCE_LOGIN_URL,
+    issuer: baseUrl,
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-    registration_endpoint: "/register", // Not implemented yet
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
-    "token_endpoint_auth_methods_supported": ["client_secret_post"],
+    token_endpoint_auth_methods_supported: ["client_secret_post"],
+    scopes_supported: ["refresh_token", "offline_access", "api", "full"],
+    response_modes_supported: ["query", "fragment"]
   });
 });
 
