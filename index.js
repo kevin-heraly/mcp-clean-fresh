@@ -141,7 +141,7 @@ const METADATA = {
   response_types_supported: ["code"],
   grant_types_supported: ["authorization_code", "refresh_token"],
   code_challenge_methods_supported: ["S256"],
-  token_endpoint_auth_methods_supported: ["client_secret_post"],
+  token_endpoint_auth_methods_supported: ["client_secret_post", "client_secret_basic"],
   endpoints: ["/tools/list", "/call/search", "/call/fetch"]
 };
 
@@ -162,7 +162,7 @@ app.get("/.well-known/oauth-authorization-server", (_, res) => {
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
-    token_endpoint_auth_methods_supported: ["client_secret_post"],
+    token_endpoint_auth_methods_supported: ["client_secret_post", "client_secret_basic"],
     scopes_supported: ["refresh_token", "offline_access", "api", "full"],
     response_modes_supported: ["query", "fragment"]
   });
