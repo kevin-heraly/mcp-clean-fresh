@@ -227,10 +227,12 @@ app.get("/.well-known/oauth-protected-resource", (req, res) => {
 // Dynamic Client Registration endpoint (RFC7591)
 app.post("/register", express.json(), (req, res) => {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
-  // Return the pre‐configured client credentials
+  // Return the pre‐configured client credentials with Salesforce OAuth metadata fields and RFC7591 required fields
   res.json({
     client_id: SALESFORCE_CLIENT_ID,
     client_secret: SALESFORCE_CLIENT_SECRET,
+    client_id_issued_at: Math.floor(Date.now() / 1000),
+    client_secret_expires_at: 0,
     registration_client_uri: `${baseUrl}/register`,
     token_endpoint_auth_method: "client_secret_post"
   });
