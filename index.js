@@ -105,7 +105,7 @@ app.get("/auth/callback", async (req, res) => {
 // Auth-guard middleware
 function ensureAuth(req, res, next) {
   if (!req.session.accessToken || !req.session.instanceUrl) {
-    res.set("WWW-Authenticate", `Bearer authorization_uri="/auth/salesforce"`);
+    res.set("WWW-Authenticate", 'Bearer realm="MCP", authorization_uri="https://mcp-salesforce-production.up.railway.app/auth/salesforce"');
     return res.status(401).json({ error: "Not authenticated. Visit /auth/salesforce first." });
   }
   req.conn = new jsforce.Connection({
@@ -155,10 +155,10 @@ app.post("/", (_, res) => res.json(METADATA));
 app.get("/.well-known/oauth-authorization-server", (_, res) => {
   const baseUrl = "https://mcp-salesforce-production.up.railway.app";
   res.json({
-    issuer: "https://mcp-salesforce-production.up.railway.app",
+    issuer: "https://demandscience.my.salesforce.com",
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-    registration_endpoint: "", // Updated from null to empty string
+    registration_endpoint: "https://mcp-salesforce-production.up.railway.app/register",
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
