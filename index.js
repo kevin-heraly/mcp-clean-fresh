@@ -66,6 +66,53 @@ app.get("/auth/salesforce", (req, res) => {
   res.redirect(authUrl);
 });
 
+// Proxy /authorize → Salesforce
+app.get("/authorize", (req, res) => {
+  const codeVerifier = base64urlEncode(crypto.randomBytes(32));
+  const codeChallenge = base64urlEncode(sha256(codeVerifier));
+  const state = base64urlEncode(crypto.randomBytes(16));
+
+  req.session.codeVerifier = codeVerifier;
+  req.session.state = state;
+
+  const url = new URL(`${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("client_id", SALESFORCE_CLIENT_ID);
+  url.searchParams.set("redirect_uri", SALESFORCE_REDIRECT_URI);
+  url.searchParams.set("scope", "refresh_token offline_access full api");
+  url.searchParams.set("state", state);
+  url.searchParams.set("code_challenge", codeChallenge);
+  url.searchParams.set("code_challenge_method", "S256");
+
+  res.redirect(url.toString());
+});
+
+// Proxy /token → Salesforce
+app.post("/token", express.urlencoded({ extended: true }), async (req, res) => {
+  const { code, redirect_uri, grant_type, client_id, client_secret, code_verifier } = req.body;
+
+  try {
+    const tokenRes = await fetch(`${SALESFORCE_LOGIN_URL}/services/oauth2/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type,
+        client_id,
+        client_secret,
+        code,
+        redirect_uri,
+        code_verifier
+      }),
+    });
+
+    const tokenData = await tokenRes.json();
+    res.status(tokenRes.status).json(tokenData);
+  } catch (err) {
+    console.error("❌ Token proxy error:", err);
+    res.status(500).json({ error: "Token proxy failed" });
+  }
+});
+
 // ─────────────────────────────────────
 // OAuth callback – validates & exchanges
 app.get("/auth/callback", async (req, res) => {
@@ -195,8 +242,8 @@ app.get("/.well-known/oauth-authorization-server", (req, res) => {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
   res.json({
     issuer: baseUrl,
-    authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
-    token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
+    authorization_endpoint: `${baseUrl}/authorize`,
+    token_endpoint: `${baseUrl}/token`,
     registration_endpoint: `${baseUrl}/register`,
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
