@@ -17,7 +17,11 @@
   "devDependencies": {
     "nodemon": "^2.0.22"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "keywords": ["mcp", "salesforce", "oauth2", "chatgpt"],
+  "author": "Kevin Heraly",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevin-heraly/salesforce-mcp-clean.git"
+  }
 }
