@@ -105,7 +105,11 @@ app.get("/auth/callback", async (req, res) => {
 // Auth-guard middleware
 function ensureAuth(req, res, next) {
   if (!req.session.accessToken || !req.session.instanceUrl) {
-    res.set("WWW-Authenticate", 'Bearer realm="MCP", authorization_uri="https://mcp-salesforce-production.up.railway.app/auth/salesforce"');
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    res.set(
+      "WWW-Authenticate",
+      `Bearer realm="MCP", resource_metadata_uri="${baseUrl}/.well-known/oauth-protected-resource", authorization_uri="${baseUrl}/auth/salesforce"`
+    );
     return res.status(401).json({ error: "Not authenticated. Visit /auth/salesforce first." });
   }
   req.conn = new jsforce.Connection({
@@ -149,6 +153,20 @@ app.get("/", (_, res) => res.json(METADATA));
 app.post("/", (_, res) => res.json(METADATA));
 
 // same /tools/list … /call/search … /call/fetch routes as before (omitted for brevity)
+
+// ─────────────────────────────────────
+// OAuth protected-resource metadata endpoint
+app.get("/.well-known/oauth-protected-resource", (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  res.json({
+    authorization_servers: [
+      {
+        issuer: baseUrl,
+        authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`
+      }
+    ]
+  });
+});
 
 // ─────────────────────────────────────
 // OAuth metadata endpoint for ChatGPT
