@@ -138,10 +138,10 @@ const METADATA = {
     token_url: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
     scope: "refresh_token offline_access full api"
   },
-  issuer: "https://mcp-salesforce-production.up.railway.app",
+  issuer: SALESFORCE_LOGIN_URL,
   authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
   token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-  registration_endpoint: "", // <-- Updated from null to empty string
+  registration_endpoint: `${SALESFORCE_REDIRECT_URI.replace(/\/auth\/callback$/, "")}/register`,
   response_types_supported: ["code"],
   grant_types_supported: ["authorization_code", "refresh_token"],
   code_challenge_methods_supported: ["S256"],
@@ -169,14 +169,26 @@ app.get("/.well-known/oauth-protected-resource", (req, res) => {
 });
 
 // ─────────────────────────────────────
+// Dynamic Client Registration endpoint (RFC7591)
+app.post("/register", express.json(), (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  // Return the pre‐configured client credentials
+  res.json({
+    client_id: SALESFORCE_CLIENT_ID,
+    client_secret: SALESFORCE_CLIENT_SECRET,
+    registration_client_uri: `${baseUrl}/register`
+  });
+});
+
+// ─────────────────────────────────────
 // OAuth metadata endpoint for ChatGPT
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
-  const baseUrl = "https://mcp-salesforce-production.up.railway.app";
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
   res.json({
-    issuer: baseUrl,
+    issuer: `${SALESFORCE_LOGIN_URL}`,
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
-    registration_endpoint: "",
+    registration_endpoint: `${baseUrl}/register`,
     response_types_supported: ["code"],
     grant_types_supported: ["authorization_code", "refresh_token"],
     code_challenge_methods_supported: ["S256"],
