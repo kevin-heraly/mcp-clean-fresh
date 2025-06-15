@@ -138,7 +138,8 @@ const METADATA = {
     token_url: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
     scope: "refresh_token offline_access full api"
   },
-  issuer: SALESFORCE_LOGIN_URL,
+  // issuer is now dynamically generated per request
+  issuer: undefined,
   authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
   token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
   registration_endpoint: `${SALESFORCE_REDIRECT_URI.replace(/\/auth\/callback$/, "")}/register`,
@@ -149,8 +150,15 @@ const METADATA = {
   endpoints: ["/tools/list", "/call/search", "/call/fetch"]
 };
 
-app.get("/", (_, res) => res.json(METADATA));
-app.post("/", (_, res) => res.json(METADATA));
+app.get("/", (req, res) => {
+  // Dynamically set issuer to the current request's base URL
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  res.json({ ...METADATA, issuer: baseUrl });
+});
+app.post("/", (req, res) => {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  res.json({ ...METADATA, issuer: baseUrl });
+});
 
 // same /tools/list … /call/search … /call/fetch routes as before (omitted for brevity)
 
@@ -176,7 +184,8 @@ app.post("/register", express.json(), (req, res) => {
   res.json({
     client_id: SALESFORCE_CLIENT_ID,
     client_secret: SALESFORCE_CLIENT_SECRET,
-    registration_client_uri: `${baseUrl}/register`
+    registration_client_uri: `${baseUrl}/register`,
+    token_endpoint_auth_method: "client_secret_post"
   });
 });
 
@@ -185,7 +194,7 @@ app.post("/register", express.json(), (req, res) => {
 app.get("/.well-known/oauth-authorization-server", (req, res) => {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
   res.json({
-    issuer: `${SALESFORCE_LOGIN_URL}`,
+    issuer: baseUrl,
     authorization_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/authorize`,
     token_endpoint: `${SALESFORCE_LOGIN_URL}/services/oauth2/token`,
     registration_endpoint: `${baseUrl}/register`,
